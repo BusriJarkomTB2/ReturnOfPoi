@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,6 +79,7 @@ public class Room extends Thread{
     private void waitforStart(){
        while (!interrupted() && !gameStarted  && numPlayerConnected() > 0){
            boolean noAction = true;//flag untuk sleep. jika noAction, sleep dulu
+           synchronized(players){
            Iterator<Player> i = players.iterator();
            while (i.hasNext()){
                Player p = i.next();
@@ -109,16 +111,21 @@ public class Room extends Thread{
                     Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
                 }
                }else{
-                   players.remove(p);
+                   try{
+                    i.remove();
+                   }catch(ConcurrentModificationException e){
+                       e.printStackTrace();
+                   }
                }
                if (interrupted())
                    break;
            }
-           if (noAction) try {
-               sleep(1000);
-           } catch (InterruptedException ex) {
-           }
-           broadcastPlayers();
+            if (noAction) try {
+                sleep(1000);
+            } catch (InterruptedException ex) {
+            }
+            broadcastPlayers();
+       }
        }
     }
         
