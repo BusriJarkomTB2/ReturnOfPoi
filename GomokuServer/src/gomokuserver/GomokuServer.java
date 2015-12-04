@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -20,6 +21,7 @@ public class GomokuServer {
 
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
         if (args.length!=1){
@@ -57,6 +59,13 @@ public class GomokuServer {
         lb.interrupt();
         fo.join();
         lb.join();
+    }
+
+    GomokuServer(String text) throws InterruptedException {
+        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String[] argstext = new String[1];
+        argstext[0] = text;
+        main(argstext);
     }
     
 }

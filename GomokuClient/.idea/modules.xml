@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Tugas Jarkom.iml" filepath="$PROJECT_DIR$/Tugas Jarkom.iml" />
+      <module fileurl="file://$PROJECT_DIR$/GomokuClient.iml" filepath="$PROJECT_DIR$/GomokuClient.iml" />
     </modules>
   </component>
 </project>

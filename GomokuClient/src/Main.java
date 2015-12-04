@@ -119,7 +119,8 @@ public class Main {
                     ps.flush();
                     System.out.println(curReply);
                     if (curReply=="CREATE") {
-                        if (sc.nextLine().equals("NAME")) {
+                        line=sc.next();
+                        if (line.equals("NAME")) {
                             System.out.println("check");
                             ps.println(lobby.getCreatedRoomName());
                             ps.flush();

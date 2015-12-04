@@ -72,9 +72,10 @@ public class FrontOffice extends Thread{
 
                     if (p==null)
                         referalLobby.enterPlayer(new Player(playerName,sc,true));
-                    else if (!p.isConnected())
+                    else if (!p.isConnected()){
                         p.reconnect(sc);
-                    else
+                        out.println(referalLobby.playerLocation(playerName));
+                    }else
                         handle(sc);
                 }else queue.add(sc);
                 

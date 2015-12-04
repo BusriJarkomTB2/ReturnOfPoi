@@ -71,7 +71,7 @@ public class RoomWaiting {
     public void updatePlayerList(String [] player){
         String text = "";
         for (int i=0;i<player.length;i++){
-            text+=player[i];
+            text+=player[i]+"\n";
         }
         notificationTextPane.setText(text);
     }

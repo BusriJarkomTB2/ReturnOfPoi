@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +33,22 @@ public class Lobby extends Thread{
             return pl.isConnected();
         else return false;
     }
+    
+    public String playerLocation(String name){
+        for (int i=0; i< players.size();i++){
+            Player pl = players.get(i);
+            if (pl.getName().equals(name))
+                return "LOBBY";
+        }
+        for (int i=0;i<rooms.size();i++){
+            Player pl = rooms.get(i).getPlayerWithName(name);
+            if (pl != null){
+                if (rooms.get(i).gameStarted()){return "STARTING";}
+                else return "ROOM";
+            }
+        }
+        return null;
+    }
         
     public Player getPlayerWithName(String name){
         for (int i=0; i< players.size();i++){
@@ -47,7 +64,9 @@ public class Lobby extends Thread{
     }
     
     public void enterPlayer(Player pl){
-        players.add(pl);
+        synchronized(players){
+            players.add(pl);
+        }
         sendLobbyInfo(pl);
     }
     
@@ -86,11 +105,16 @@ public class Lobby extends Thread{
     public void run() {
        while (!interrupted()){
            boolean noAction = true;//flag untuk sleep. jika noAction, sleep dulu
+           synchronized(players){
            Iterator<Player> i = players.iterator();
            while (i.hasNext()){
                Player p =i.next();
                if (!p.isConnected()){
-                   players.remove(p);
+                   try{
+                    i.remove();
+                   }catch(ConcurrentModificationException e){
+                       e.printStackTrace();
+                   }
                }else try {
                    InputStream is = p.getSocket().getInputStream();
                    PrintStream ps = new PrintStream(p.getSocket().getOutputStream());
@@ -145,6 +169,7 @@ public class Lobby extends Thread{
            if (noAction) try {
                sleep(10);
            } catch (InterruptedException ex) {
+           }
            }
        }
        
