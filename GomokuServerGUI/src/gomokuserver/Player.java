@@ -10,7 +10,11 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Scanner;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,21 +22,27 @@ import java.util.logging.Logger;
  *
  * @author nim_13512501
  */
-public class Player {
+public class Player extends Thread{
     private String name;
     private Socket socket;
     private boolean connected;
     public Player(String name, Socket socket, boolean connected){
+        try {
+            this.ps = new PrintStream(socket.getOutputStream());
+        } catch (IOException ex) {
+            connected = false;
+        }
         this.name = name;
         this.socket = socket;
         this.connected = connected;
+        this.start();
     }
     
-    public String getName(){
+    public String getPlayerName(){
         return name;
     }
     
-    public Socket getSocket(){
+    private Socket getSocket(){
         return socket;
     }
     
@@ -44,21 +54,67 @@ public class Player {
         this.connected = connected;
     }
     
-    public int[] getMove()
+    //pembacaan dan penulisan
+    BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+    
+    @Override
+    public void run(){
+        messages.clear();
+        Scanner sc = null;
+        try {
+            sc = new Scanner(socket.getInputStream());
+            while (sc.hasNext() && connected){
+                messages.add(sc.next());
+            }
+        } catch (IOException ex) {
+            connected = false;
+        }
+        connected = false;
+        messages.add(" __@@!!FAILURE!!@@__ ");
+    }
+    
+    public String nextMessage() throws InterruptedException{
+        String msg = messages.take();
+        if (msg.equals(" __@@!!FAILURE!!@@__ "))
+            return null;
+        else return msg;
+    }
+    
+    /**
+     * 
+     * @return true if a message can be acquired without blocking
+     */
+    public boolean messageAvailable(){
+        return !messages.isEmpty();
+    }
+    
+    private PrintStream ps;
+    
+    public void println(Object o){
+        ps.println(o);
+        ps.flush();
+    }
+    
+    public void print(Object o){
+        ps.print(o);
+        ps.flush();
+    }
+    
+    public int[] getMove() throws InterruptedException
     {
         int[] playMove = new int[2];
         try {
-            Scanner myScan = new Scanner(getSocket().getInputStream());
-            PrintStream ps = new PrintStream(getSocket().getOutputStream());
             
-            ps.println("MOVE");
+            this.println("MOVE");
             
             boolean gotNumber = false;
             do{
-                    playMove[0] = myScan.nextInt();
-                    System.out.println("test " + playMove[0]);
-                    playMove[1] = myScan.nextInt();
-                    System.out.println("test " + playMove[1]);
+                    String txt = nextMessage();
+                    if (txt==null) return null;
+                    playMove[0] = Integer.parseInt(txt);
+                    txt = nextMessage();
+                    if (txt==null) return null;
+                    playMove[1] = Integer.parseInt(txt);
                     gotNumber = true;
             }while(!gotNumber);
             
@@ -71,18 +127,21 @@ public class Player {
         }catch(NoSuchElementException ex){
             connected = false;
             playMove=null;
-        }catch (IOException ex) {
-            setConnected(false);
-            playMove=null;
-            Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
         }
         return playMove;
     }
     
     public void reconnect(Socket s){
         if (s.isConnected() && !s.isClosed()){
-            this.socket = s;
-            this.setConnected(true);
+            try {
+                this.socket = s;
+                ps = new PrintStream(socket.getOutputStream());
+                this.setConnected(true);
+                this.start();
+            } catch (IOException ex) {
+                connected = false;
+                Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }
