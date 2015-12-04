@@ -49,6 +49,11 @@ public class Main {
 
         while (state!=STATE_QUIT){
             try{
+                connect.hide();
+                login.hide();
+                lobby.hide();
+                roomWaiting.hide();
+                display._hide();
                 switch(state){
                     case STATE_CONNECT: handleConnect(); break;
                     case STATE_LOGIN: handleLoginComm(); break;
@@ -57,7 +62,7 @@ public class Main {
                     case STATE_GAME: handleGameComm(); break;
                     default: exit(0);
                 }
-            }catch(IOException e){
+            }catch(IOException | java.util.NoSuchElementException e){
                 handleConnectionFault();
             }
         }
@@ -70,7 +75,7 @@ public class Main {
         System.out.println("connectionFault");//TODO tampilkan pesan error ke GUI kesalahan koneksi/disconnected
     }
 
-    public static void handleConnect() throws IOException, InterruptedException{
+    public static void handleConnect() throws IOException, InterruptedException, java.util.NoSuchElementException{
         connect.show();
         boolean successConnect = false;
         do{
@@ -96,7 +101,7 @@ public class Main {
 
     private static String name;
 
-    public static void handleLoginComm() throws InterruptedException, IOException {
+    public static void handleLoginComm() throws InterruptedException, IOException, java.util.NoSuchElementException {
         login.show();
         while (state== STATE_LOGIN){
             do{
@@ -110,7 +115,7 @@ public class Main {
         login.hide();
     }
 
-    public static void handleLobbyComm() throws IOException, InterruptedException {
+    public static void handleLobbyComm() throws IOException, InterruptedException, java.util.NoSuchElementException {
         lobby.show();
         while (state==STATE_LOBBY){
             String line = sc.nextLine();
@@ -173,7 +178,7 @@ public class Main {
         }
 
     }
-    public static void handleRoomWaitingComm() throws InterruptedException {
+    public static void handleRoomWaitingComm() throws InterruptedException, java.util.NoSuchElementException {
         roomWaiting.show();
         WaitUserStartOrLeave waitUserStartOrLeave = new WaitUserStartOrLeave(roomWaiting, ps);
         waitUserStartOrLeave.start();
@@ -200,7 +205,7 @@ public class Main {
         roomWaiting.hide();
     }
 
-    public static void handleGameComm() throws InterruptedException {
+    public static void handleGameComm() throws InterruptedException, java.util.NoSuchElementException {
         display._show();
         while (state==STATE_GAME){
             String line = sc.nextLine();
