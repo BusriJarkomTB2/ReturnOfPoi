@@ -64,7 +64,9 @@ public class Lobby extends Thread{
     }
     
     public void enterPlayer(Player pl){
-        players.add(pl);
+        synchronized(players){
+            players.add(pl);
+        }
         sendLobbyInfo(pl);
     }
     

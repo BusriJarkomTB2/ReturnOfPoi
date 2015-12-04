@@ -55,9 +55,11 @@ public class Room extends Thread{
     private List<Player> players;
     
     public Player getPlayerWithName(String name){
-        for (Player pl : players) {
-            if (pl.getName().equals(name))
-                return pl;
+        synchronized(players){
+            for (Player pl : players) {
+                if (pl.getName().equals(name))
+                    return pl;
+            }
         }
         return null;
     }
@@ -67,7 +69,9 @@ public class Room extends Thread{
         PrintStream ps = new PrintStream(pl.getSocket().getOutputStream());
         ps.println("ROOM");
         ps.println(this.getRoomName());
-        players.add(pl);
+        synchronized(players){
+            players.add(pl);
+        }
     }
     
     public int numPlayerConnected(){
@@ -135,6 +139,7 @@ public class Room extends Thread{
         boolean play = true;
         Table gameTable = new Table(WIDTH,HEIGHT);
         int playerInTurn = 0;
+        synchronized(players){
         while (play && numPlayerConnected()>0){
             Player curplayer = players.get(playerInTurn);
             if (curplayer.isConnected()){
@@ -162,6 +167,7 @@ public class Room extends Thread{
                 }
             }
             playerInTurn=(playerInTurn + 1) % players.size();//next player
+        }
         }
         gameStarted=false;
     }
