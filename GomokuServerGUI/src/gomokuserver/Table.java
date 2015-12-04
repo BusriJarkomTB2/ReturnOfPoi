@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 /**
  * modified by KomJar
- * @author Pedro Coelho
+ * @author Nizami
  */
 public class Table {
 
@@ -16,7 +16,8 @@ public class Table {
     
 	private int width, height;
 	private int store[][];
-        
+
+// Membuat matriks untuk permainan gomoku
 	Table(int width, int height) {
 
 		this.width = width;
@@ -32,7 +33,7 @@ public class Table {
 	}
         
         int lastPlayer;
-
+// Fungsi untuk membuat Move player
 	public boolean makeMove(int player, int x, int y) {
 		try {
 			if (store[x][y] != EMPTY) {
