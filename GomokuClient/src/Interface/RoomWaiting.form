@@ -8,12 +8,14 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="32073" class="javax.swing.JLabel">
+      <component id="5fb47" class="javax.swing.JTextPane" binding="notificationTextPane">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="2" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="50" height="50"/>
+          </grid>
         </constraints>
         <properties>
-          <text value="Player Online"/>
+          <text value=""/>
         </properties>
       </component>
       <component id="ae8be" class="javax.swing.JButton" binding="startButton" default-binding="true">
@@ -32,14 +34,12 @@
           <text value="Leave"/>
         </properties>
       </component>
-      <component id="5fb47" class="javax.swing.JTextPane" binding="notificationTextPane">
+      <component id="32073" class="javax.swing.JLabel">
         <constraints>
-          <grid row="1" column="0" row-span="2" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="50" height="50"/>
-          </grid>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value=""/>
+          <text value="Player Online"/>
         </properties>
       </component>
     </children>
