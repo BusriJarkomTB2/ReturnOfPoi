@@ -5,17 +5,14 @@
  */
 package gomokuserver;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +21,7 @@ import java.util.logging.Logger;
  * @author nim_13512501
  */
 public class Lobby extends Thread{
-    private List<Player> players = Collections.synchronizedList(new LinkedList<Player>());
+    private BlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private List<Room> rooms = Collections.synchronizedList(new LinkedList<Room>());
     
     public boolean playerConnected(String name){
@@ -35,10 +32,16 @@ public class Lobby extends Thread{
     }
     
     public String playerLocation(String name){
-        for (int i=0; i< players.size();i++){
-            Player pl = players.get(i);
-            if (pl.getName().equals(name))
-                return "LOBBY";
+        synchronized(players){
+            if (pOnProcess!=null)
+                if (pOnProcess.getPlayerName().equals(name))
+                    return "LOBBY";
+                Iterator<Player> it = players.iterator();
+                while(it.hasNext()){
+                    Player pl = it.next();
+                    if (pl.getPlayerName().equals(name))
+                        return "LOBBY";
+                }
         }
         for (int i=0;i<rooms.size();i++){
             Player pl = rooms.get(i).getPlayerWithName(name);
@@ -49,12 +52,20 @@ public class Lobby extends Thread{
         }
         return null;
     }
+    
+    Player pOnProcess = null;
         
     public Player getPlayerWithName(String name){
-        for (int i=0; i< players.size();i++){
-            Player pl = players.get(i);
-            if (pl.getName().equals(name))
-                return pl;
+        synchronized(players){
+            if (pOnProcess!=null)
+                if (pOnProcess.getPlayerName().equals(name))
+                    return pOnProcess;
+            Iterator<Player> it = players.iterator();
+            while(it.hasNext()){
+                Player pl = it.next();
+                if (pl.getPlayerName().equals(name))
+                    return pl;
+            }
         }
         for (int i=0;i<rooms.size();i++){
             Player pl = rooms.get(i).getPlayerWithName(name);
@@ -63,10 +74,8 @@ public class Lobby extends Thread{
         return null;
     }
     
-    public void enterPlayer(Player pl){
-        synchronized(players){
-            players.add(pl);
-        }
+    public void enterPlayer(Player pl) throws InterruptedException{
+        players.put(pl);
         sendLobbyInfo(pl);
     }
     
@@ -84,93 +93,86 @@ public class Lobby extends Thread{
     }
     
     public void sendLobbyInfo(Player pl){
-        OutputStream os;
-        try {
-            os = pl.getSocket().getOutputStream();
-            PrintStream ps = new PrintStream(os);
-            ps.println("LOBBY");
-            ps.println("ROOMLIST");
-            ps.println(rooms.size());
-            for (Room r : rooms){
-                ps.println(r.getRoomID() + " " + r.getRoomName()
-                        + " " + (r.gameStarted()?"STARTED":"WAITING"));
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+        pl.println("LOBBY");
+        pl.println("ROOMLIST");
+        pl.println(rooms.size());
+        for (Room r : rooms){
+            pl.println(r.getRoomID() + " " + r.getRoomName()
+                    + " " + (r.gameStarted()?"STARTED":"WAITING"));
         }
         
     }
     
     @Override
     public void run() {
+        int countNoAction = 0;
        while (!interrupted()){
-           boolean noAction = true;//flag untuk sleep. jika noAction, sleep dulu
-           synchronized(players){
-           Iterator<Player> i = players.iterator();
-           while (i.hasNext()){
-               Player p =i.next();
-               if (!p.isConnected()){
-                   try{
-                    i.remove();
-                   }catch(ConcurrentModificationException e){
-                       e.printStackTrace();
-                   }
-               }else try {
-                   InputStream is = p.getSocket().getInputStream();
-                   PrintStream ps = new PrintStream(p.getSocket().getOutputStream());
-                   if(is.available()>0){
-                        noAction = false;
-                        BufferedReader in = new BufferedReader(new InputStreamReader(is));
-                        String inputLine =in.readLine();
-                        if (inputLine.equals("REFRESH"))
-                            sendLobbyInfo(p);
-                        else if (inputLine.equals("CREATE")){
-                            ps.println("NAME");
-                            ps.flush();
-                            String name = in.readLine();
-                            Room r = new Room(name, this);
-                            try {
-                                r.enterPlayer(p);
+            try {
+                pOnProcess =players.take();
+                if (!pOnProcess.isConnected()){
+                    players.put(pOnProcess);
+                }else
+                    try {
+                        boolean putPlayerAgain = true;
+                    if(pOnProcess.messageAvailable()){
+                        countNoAction++;
+                        String inputLine =pOnProcess.nextMessage();
+                        if (inputLine!=null)
+                            if (inputLine.equals("REFRESH"))
+                                sendLobbyInfo(pOnProcess);
+                            else if (inputLine.equals("CREATE")){
+                                pOnProcess.println("NAME");
+                                String name = pOnProcess.nextMessage();
+                                if (name!=null){
+                                    Room r = new Room(name, this);
+                                    try {
+                                        r.enterPlayer(pOnProcess);
+                                    } catch (GameStartedException ex) {
+                                        Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                    putPlayerAgain = false;
+                                    rooms.add(r);
+                                    r.start();
+                                }
+                            }else if (inputLine.equals("LEAVE")){
+                                putPlayerAgain = false;
+                                pOnProcess.setConnected(false);
+                            }else try{
+                                int roomID = Integer.parseInt(inputLine);
+                                Room r = getRoomFromID(roomID);
+                                if (r==null){
+                                    pOnProcess.println("NOTFOUND");
+                                    sendLobbyInfo(pOnProcess);
+                                }else{
+                                    r.enterPlayer(pOnProcess);
+                                    putPlayerAgain=false;
+                                }
+                            }catch(NumberFormatException e){
+                                pOnProcess.println("INVALIDINPUT");
+                                sendLobbyInfo(pOnProcess);
                             } catch (GameStartedException ex) {
-                                Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+                                pOnProcess.println("ALREADYSTARTED");
+                                sendLobbyInfo(pOnProcess);
                             }
-                            i.remove();
-                            rooms.add(r);
-                            r.start();
-                        }else if (inputLine.equals("LEAVE")){
-                            i.remove();
-                            p.setConnected(false);
-                            p.getSocket().close();
-                        }else try{
-                            int roomID = Integer.parseInt(inputLine);
-                            Room r = getRoomFromID(roomID);
-                            if (r==null){
-                                ps.println("NOTFOUND");
-                                sendLobbyInfo(p);
-                            }else{
-                                r.enterPlayer(p);
-                                i.remove();
-                            }
-                        }catch(NumberFormatException e){
-                            ps.println("INVALIDINPUT");
-                            sendLobbyInfo(p);
-                        } catch (GameStartedException ex) {
-                            ps.println("ALREADYSTARTED");
-                            sendLobbyInfo(p);
-                        }
-                   }
-               } catch (IOException ex) {
-                   p.setConnected(false);
-                   Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
-               }
-               if (interrupted())
-                   break;
-           }
-           if (noAction) try {
-               sleep(10);
-           } catch (InterruptedException ex) {
-           }
-           }
+                    }
+                    if (putPlayerAgain) players.put(pOnProcess);
+                } catch (IOException ex) {
+                    pOnProcess.setConnected(false);
+                    Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                if (interrupted())
+                    break;
+                
+                if (countNoAction>=players.size()) try {
+                    countNoAction = 0;
+                    sleep(10);
+                } catch (InterruptedException ex) {
+                }} catch (InterruptedException ex) {
+                Logger.getLogger(Lobby.class.getName()).log(Level.SEVERE, null, ex);
+            }
+           
        }
        
     }

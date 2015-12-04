@@ -57,7 +57,7 @@ public class Room extends Thread{
     public Player getPlayerWithName(String name){
         synchronized(players){
             for (Player pl : players) {
-                if (pl.getName().equals(name))
+                if (pl.getPlayerName().equals(name))
                     return pl;
             }
         }
@@ -66,9 +66,8 @@ public class Room extends Thread{
     
     public void enterPlayer(Player pl) throws GameStartedException, IOException{
         if (gameStarted) throw new GameStartedException("Game Started");
-        PrintStream ps = new PrintStream(pl.getSocket().getOutputStream());
-        ps.println("ROOM");
-        ps.println(this.getRoomName());
+        pl.println("ROOM");
+        pl.println(this.getRoomName());
         synchronized(players){
             players.add(pl);
         }
@@ -91,12 +90,10 @@ public class Room extends Thread{
                Player p = i.next();
                if (p.isConnected()){
                 try {
-                    InputStream is = p.getSocket().getInputStream();
-                    PrintStream ps = new PrintStream(p.getSocket().getOutputStream());
-                    if(is.available()>0){
+                    if(p.messageAvailable()){
                          noAction = false;
-                         BufferedReader in = new BufferedReader(new InputStreamReader(is));
-                         String inputLine =in.readLine();
+                         String inputLine =p.nextMessage();
+                         if (inputLine!=null)
                          if (inputLine.equals("LEAVE")){
                              i.remove();
                              parentLobby.enterPlayer(p);
@@ -105,20 +102,19 @@ public class Room extends Thread{
                                  gameStarted=true;
                                  broadcastln("STARTING");
                              }else{
-                                 ps.println("NOTENOUGHPLAYER");
+                                 p.println("NOTENOUGHPLAYER");
                              }
                              break;
                          }else{
-                             ps.println("INVALIDINPUT");
+                             p.println("INVALIDINPUT");
                          }
                     }
-                } catch (IOException ex) {
-                    p.setConnected(false);
-                    Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                }  catch (InterruptedException ex) {
+                       Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
+                   }
                }else{
                    try{
-                    i.remove();
+                       i.remove();
                    }catch(ConcurrentModificationException e){
                        e.printStackTrace();
                    }
@@ -135,7 +131,7 @@ public class Room extends Thread{
        }
     }
         
-    public void playGame(){
+    public void playGame() throws InterruptedException{
         boolean play = true;
         Table gameTable = new Table(WIDTH,HEIGHT);
         int playerInTurn = 0;
@@ -176,10 +172,14 @@ public class Room extends Thread{
     public void run() {
         broadcastPlayers();
         while (numPlayerConnected() > 0){
-            broadcastln("ROOM");
-            waitforStart();
-            if (gameStarted)
-                playGame();
+            try {
+                broadcastln("ROOM");
+                waitforStart();
+                if (gameStarted)
+                    playGame();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         parentLobby.deleteRoom(this);
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -192,13 +192,7 @@ public class Room extends Thread{
         for (Player p: players){
             if (p.isConnected()){
                 PrintStream ps;
-                try {
-                    ps = new PrintStream (p.getSocket().getOutputStream());
-                    ps.println(msg);
-                } catch (IOException ex) {
-                    p.setConnected(false);
-                    Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                p.println(msg);
             }
         }
     }
@@ -211,7 +205,7 @@ public class Room extends Thread{
             Player p = players.get(i);
             broadcastMessage+=i;
             broadcastMessage+=' ';
-            broadcastMessage+=p.getName();
+            broadcastMessage+=p.getPlayerName();
             broadcastMessage+=' ';
             broadcastMessage+=p.isConnected()?"CONNECTED":"DISCONNECTED";
         }
