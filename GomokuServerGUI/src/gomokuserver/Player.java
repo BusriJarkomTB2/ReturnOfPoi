@@ -19,14 +19,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Pemain
  * @author nim_13512501
  */
 public class Player implements Runnable{
+    /**
+     * nama pemain
+    */
     private String name;
+    /**
+     * socket
+     */
     private Socket socket;
+    /**
+     * status apakah terhubung atau tidak (tidak akurat, bisa jadi disconnected tapi ini bernilai false)
+     */
     private boolean connected;
     Thread plThread;
+    
+    /**
+     * konstruktor
+     * @param name
+     * @param socket
+     * @param connected 
+     */
     public Player(String name, Socket socket, boolean connected){
         try {
             this.ps = new PrintStream(socket.getOutputStream());
@@ -59,6 +75,9 @@ public class Player implements Runnable{
     //pembacaan dan penulisan
     BlockingQueue<String> messages = new LinkedBlockingQueue<>();
     
+    /**
+     * membca dari socket dan menaruh di buffer messages
+     */
     @Override
     public void run(){
         messages.clear();
@@ -75,6 +94,11 @@ public class Player implements Runnable{
         messages.add(" __@@!!FAILURE!!@@__ ");
     }
     
+    /**
+     * mengambil dari messages
+     * @return null bila disconnected
+     * @throws InterruptedException 
+     */
     public String nextMessage() throws InterruptedException{
         String msg = messages.take();
         if (msg.equals(" __@@!!FAILURE!!@@__ "))
@@ -102,6 +126,11 @@ public class Player implements Runnable{
         ps.flush();
     }
     
+    /**
+     * mengambil gerakan 
+     * @return {baris,kolom}
+     * @throws InterruptedException 
+     */
     public int[] getMove() throws InterruptedException
     {
         int[] playMove = new int[2];
@@ -133,6 +162,11 @@ public class Player implements Runnable{
         return playMove;
     }
     
+    /**
+     * mencoba menghubungkan ulang player dengan socket s.
+     * socket di dalam room diganti socket s
+     * @param s 
+     */
     public void reconnect(Socket s){
         if (s.isConnected() && !s.isClosed()){
             try {

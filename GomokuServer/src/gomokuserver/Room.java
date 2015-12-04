@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Room baik waiting maupun bermain
  * @author nim_13512501
  */
 public class Room extends Thread{
@@ -36,6 +36,11 @@ public class Room extends Thread{
     private final Lobby parentLobby;
     private boolean gameStarted;
     
+    /**
+     * konstruktor
+     * @param name
+     * @param parentLobby 
+     */
     public Room(String name, Lobby parentLobby){
         players = Collections.synchronizedList(new ArrayList<Player>());
         ID = count.incrementAndGet();
@@ -64,6 +69,12 @@ public class Room extends Thread{
         return null;
     }
     
+    /**
+     * memasukkan player ke room
+     * @param pl
+     * @throws GameStartedException bila permainan sudah dimulai dan pl tidak dapat dimasukkan
+     * @throws IOException 
+     */
     public void enterPlayer(Player pl) throws GameStartedException, IOException{
         if (gameStarted) throw new GameStartedException("Game Started");
         pl.println("ROOM");
@@ -73,6 +84,9 @@ public class Room extends Thread{
         }
     }
     
+    /**
+     * @return banyaknya player berstatus connected
+     */
     public int numPlayerConnected(){
         int sum = 0;
         synchronized(players){
@@ -81,6 +95,11 @@ public class Room extends Thread{
         return sum;
     }
     
+    /**
+     * menunggu start
+     * cycle through all players
+     * refer to protocol definition for further info
+     */
     private void waitforStart(){
        while (!interrupted() && !gameStarted  && numPlayerConnected() > 0){
            boolean noAction = true;//flag untuk sleep. jika noAction, sleep dulu
@@ -130,7 +149,10 @@ public class Room extends Thread{
        }
        }
     }
-        
+        /**
+         * bermain
+         * @throws InterruptedException 
+         */
     public void playGame() throws InterruptedException{
         boolean play = true;
         Table gameTable = new Table(WIDTH,HEIGHT);
@@ -168,6 +190,9 @@ public class Room extends Thread{
         gameStarted=false;
     }
 
+    /**
+     * switch between waitforStart and playGame
+     */
     @Override
     public void run() {
         broadcastPlayers();
@@ -187,7 +212,9 @@ public class Room extends Thread{
     
     
     
-    //mengirimkan msg + newline
+    /**
+     * mengirimkan msg + newline ke semua player
+     * */
     private void broadcastln(String msg){
         for (Player p: players){
             if (p.isConnected()){
@@ -197,6 +224,9 @@ public class Room extends Thread{
         }
     }
     
+    /**
+     * broadcast list of players
+     */
     private void broadcastPlayers(){
         String broadcastMessage = "PLAYER";
         broadcastMessage += "\n" + players.size();
@@ -212,6 +242,10 @@ public class Room extends Thread{
         broadcastln(broadcastMessage);
     }
     
+    /**
+     * broadcast seluruh tabel
+     * @param t 
+     */
     private void broadcastTable(Table t){
         String broadcastMessage = "TABLE";
         int[][] tab = t.getStore();
@@ -225,6 +259,11 @@ public class Room extends Thread{
         broadcastln(broadcastMessage);
     }
     
+    /**
+     * broadcast status WIN ke semua player
+     * @param player
+     * @param winPieces 
+     */
     private void broadcastWin(int player, int[][] winPieces){
         String broadcastMessage = "WIN";
         broadcastMessage+= '\n';

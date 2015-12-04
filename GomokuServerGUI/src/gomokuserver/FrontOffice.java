@@ -19,20 +19,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Kelas ini untuk menerima login pengguna
  * @author nim_13512501
  */
 public class FrontOffice extends Thread{
     
-    private BlockingQueue<Socket> queue = new LinkedBlockingQueue<Socket>();
-    private Lobby referalLobby = null;
+    private BlockingQueue<Socket> queue = new LinkedBlockingQueue<Socket>();//antrian pemain untuk diproses
+    private Lobby referalLobby = null; //lobby tempat melempar pemain
     public void setReferalLobby(Lobby lb){
         referalLobby = lb;
     }
     public Lobby getReferalLobby(){
         return referalLobby;
     }
-            
+    
+    /**
+     * meminta FrontOffice untuk menangani koneksi socket sc
+     * @param sc 
+     */        
     public void handle(Socket sc){
         System.out.println("asking for name...");
         PrintStream out;
@@ -46,6 +50,13 @@ public class FrontOffice extends Thread{
         }
     }
     
+    /**
+     * run looping berulang-ulang menangani dari antrian:
+     * Apabila belum ada jawaban, ulang loop.
+     * Apabila sudah ada jawaban, cek apakah nama sudah terhubung atau belum.
+     * Jika sudah terhubung, coba reconnect. Jika belum, buat objek Player baru
+     * dan lempar ke lobby
+     */
     @Override
     public void run() {
         while (!interrupted()){
@@ -67,11 +78,11 @@ public class FrontOffice extends Thread{
                     BufferedReader in = new BufferedReader(new InputStreamReader(scis));
                     playerName =in.readLine();
 
-                    Player p = referalLobby.getPlayerWithName(playerName);
+                    Player p = referalLobby.getPlayerWithName(playerName);//cari player di lobby
                     System.out.println("player name: "+playerName);
 
                     if (p==null)
-                        referalLobby.enterPlayer(new Player(playerName,sc,true));
+                        referalLobby.enterPlayer(new Player(playerName,sc,true)); //melempar player ke lobby
                     else if (!p.isConnected()){
                         p.reconnect(sc);
                         out.println(referalLobby.playerLocation(playerName));

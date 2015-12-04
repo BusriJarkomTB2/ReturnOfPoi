@@ -6,7 +6,7 @@
 package gomokuserver;
 
 /**
- *
+ * Eksepsi untuk game sudah di-start
  * @author nim_13512501
  */
 public class GameStartedException extends Exception{

@@ -17,20 +17,31 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Player yang dilempar ke sini dapat melihat ada apa di lobby,
+ * join, create, dan refresh
  * @author nim_13512501
  */
 public class Lobby extends Thread{
     private BlockingQueue<Player> players = new LinkedBlockingQueue<Player>();
     private List<Room> rooms = Collections.synchronizedList(new LinkedList<Room>());
     
+    /**
+     * 
+     * @param name
+     * @return true bila player dengan nama name masih terhubung di Lobby atau di suatu Room
+     * 
+     */
     public boolean playerConnected(String name){
         Player pl = getPlayerWithName(name);
         if (pl!=null)
             return pl.isConnected();
         else return false;
     }
-    
+    /**
+     * 
+     * @param name
+     * @return "LOBBY" bila player dengan nama name ada di lobby, "STARTING" bila ada di permainan, "ROOM" bila menunggu di room
+     */
     public String playerLocation(String name){
         synchronized(players){
             if (pOnProcess!=null)
@@ -54,7 +65,11 @@ public class Lobby extends Thread{
     }
     
     Player pOnProcess = null;
-        
+   /**
+    * 
+    * @param name
+    * @return objek player dengan nama name bila ada di lobby atau suatu room, null bila tidak
+    */     
     public Player getPlayerWithName(String name){
         synchronized(players){
             if (pOnProcess!=null)
@@ -74,15 +89,29 @@ public class Lobby extends Thread{
         return null;
     }
     
+    /**
+     * menaruh pl di dalam lobby
+     * @param pl
+     * @throws InterruptedException 
+     */
     public void enterPlayer(Player pl) throws InterruptedException{
         players.put(pl);
         sendLobbyInfo(pl);
     }
     
+    /**
+     * menghapus room
+     * @param r 
+     */
     public void deleteRoom(Room r){
         rooms.remove(r);
     }
     
+    /**
+     * 
+     * @param ID
+     * @return objek Room dengan RoomID ID
+     */
     public Room getRoomFromID(int ID){
         for (Room r : rooms){
             if (r.getRoomID()==ID)
@@ -92,6 +121,10 @@ public class Lobby extends Thread{
         return null;
     }
     
+    /**
+     * mengirimkan informasi lobby kepada player pl
+     * @param pl 
+     */
     public void sendLobbyInfo(Player pl){
         pl.println("LOBBY");
         pl.println("ROOMLIST");
@@ -103,9 +136,12 @@ public class Lobby extends Thread{
         
     }
     
+    /**
+     * loop memproses message dari player
+     */
     @Override
     public void run() {
-        int countNoAction = 0;
+        int countNoAction = 0; //untuk sleep bila tidak ada message agar tidak busy wait
        while (!interrupted()){
             try {
                 pOnProcess =players.take();

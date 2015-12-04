@@ -28,6 +28,7 @@ public class GomokuServer {
             System.out.println("Run with listen portno as argument");
             return;
         }
+        
         int portno = Integer.parseInt(args[0]);
         ServerSocket sc;
         try{
