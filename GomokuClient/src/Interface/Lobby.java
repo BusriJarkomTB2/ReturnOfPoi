@@ -40,14 +40,19 @@ public class Lobby {
         frame.setSize(400,300);
         createButton.addActionListener(new ActionListener() {
             public boolean nameValid(String txt){
-                //TODO validasi: tidak boleh ada whitespace. alfanumerik aja kali ya. terus gak boleh kosong
-                return !txt.isEmpty();
+                //TODO validasi: tidak boleh ada whitespace. alfanumerik dan underscore aja kali ya. terus gak boleh kosong
+
+                return !txt.isEmpty()
+                        && txt.matches("\\w+");
             }
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (nameValid(getCreatedRoomName())){
                     userInput = "CREATE";
                     userInputSignal.tellToGo();
+                }else{
+                    JOptionPane.showMessageDialog(null, "Invalid input: only alphanumeric characters and '_' are allowed", "Gomoku",
+                            JOptionPane.PLAIN_MESSAGE);
                 }
             }
         });

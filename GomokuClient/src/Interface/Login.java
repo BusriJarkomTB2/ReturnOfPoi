@@ -1,5 +1,7 @@
 package Interface;
 
+import sun.misc.Regexp;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,13 +28,17 @@ public class Login {
         frame.setResizable(false);
         LogInBtn.addActionListener(new ActionListener() {
             public boolean nameValid(String txt){
-                //TODO validasi: tidak boleh ada whitespace. alfanumerik aja kali ya
-                return true;
+                //validasi: tidak boleh ada whitespace. word character aja kali ya dan tidak boleh kosong
+                return txt.matches("\\w+") && !txt.isEmpty();
             }
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (nameValid(getUsernameField().getText()));
-                buttonPressed.tellToGo();
+                if (nameValid(getUsernameField().getText()))
+                    buttonPressed.tellToGo();
+                else
+                JOptionPane.showMessageDialog(null, "Invalid input: only alphanumeric characters and '_' are allowed", "Gomoku",
+                        JOptionPane.PLAIN_MESSAGE);
+
             }
         });
     }

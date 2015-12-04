@@ -1,5 +1,6 @@
 import Interface.*;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -72,7 +73,9 @@ public class Main {
     public static void handleConnectionFault(){
         state = STATE_CONNECT;
 
-        System.out.println("connectionFault");//TODO tampilkan pesan error ke GUI kesalahan koneksi/disconnected
+        System.out.println("connectionFault");
+        JOptionPane.showMessageDialog(null, "Connection to server faulty or disconnected ", "Gomoku",
+                JOptionPane.PLAIN_MESSAGE);
     }
 
     public static void handleConnect() throws IOException, InterruptedException, java.util.NoSuchElementException{
