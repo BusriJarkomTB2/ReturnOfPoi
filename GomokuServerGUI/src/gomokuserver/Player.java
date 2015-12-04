@@ -137,7 +137,8 @@ public class Player extends Thread{
                 this.socket = s;
                 ps = new PrintStream(socket.getOutputStream());
                 this.setConnected(true);
-                this.start();
+                if (!this.isAlive())
+                    this.start();
             } catch (IOException ex) {
                 connected = false;
                 Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
