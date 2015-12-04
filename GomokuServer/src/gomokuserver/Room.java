@@ -72,7 +72,9 @@ public class Room extends Thread{
     
     public int numPlayerConnected(){
         int sum = 0;
-        sum = players.stream().filter((p) -> (p.isConnected())).map((_item) -> 1).reduce(sum, Integer::sum);
+        synchronized(players){
+            sum = players.stream().filter((p) -> (p.isConnected())).map((_item) -> 1).reduce(sum, Integer::sum);
+        }
         return sum;
     }
     
