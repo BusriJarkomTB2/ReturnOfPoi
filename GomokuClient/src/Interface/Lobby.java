@@ -39,9 +39,13 @@ public class Lobby {
         frame.setResizable(false);
         frame.setSize(400,300);
         createButton.addActionListener(new ActionListener() {
+            public boolean nameValid(String txt){
+                //TODO validasi: tidak boleh ada whitespace. alfanumerik aja kali ya. terus gak boleh kosong
+                return !txt.isEmpty();
+            }
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!getCreatedRoomName().isEmpty()){
+                if (nameValid(getCreatedRoomName())){
                     userInput = "CREATE";
                     userInputSignal.tellToGo();
                 }

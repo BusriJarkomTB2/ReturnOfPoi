@@ -31,32 +31,14 @@ public class Main {
     private static final int STATE_GAME = 4;
     private static final int STATE_QUIT = -1;
 
-    public static void main(String args[]) throws InterruptedException, IOException {
-        connect = new Connect();
+    public static void main(String args[]) throws InterruptedException {
 
-        String [] connectArgs;
+
 
         socketToServer = null;
-        boolean successConnect = false;
-        do{
-            connectArgs = connect.askConnectArgs();
-            try {
-                socketToServer = new Socket(connectArgs[0],Integer.parseInt(connectArgs[1]));
-                socketToServer.setKeepAlive(true);
-                successConnect = true;
-                is = socketToServer.getInputStream();
-                os = socketToServer.getOutputStream();
-                ps = new PrintStream(os);
-                sc = new Scanner(is);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (NumberFormatException e){
-                e.printStackTrace();
-            }
-        }while (!successConnect);
 
-        connect.hide();
 
+        connect = new Connect();
         login = new Login();
         lobby = new Lobby();
         roomWaiting = new RoomWaiting();
@@ -70,16 +52,50 @@ public class Main {
         stateChangeMessageToStateInt(line);
 
         while (state!=STATE_QUIT){
-            switch(state){
-                case STATE_LOGIN: handleLoginComm(); break;
-                case STATE_LOBBY: handleLobbyComm(); break;
-                case STATE_ROOMWAITING: handleRoomWaitingComm(); break;
-                case STATE_GAME: handleGameComm(); break;
-                default: exit(0);
+            try{
+                switch(state){
+                    case STATE_CONNECT: handleConnect(); break;
+                    case STATE_LOGIN: handleLoginComm(); break;
+                    case STATE_LOBBY: handleLobbyComm(); break;
+                    case STATE_ROOMWAITING: handleRoomWaitingComm(); break;
+                    case STATE_GAME: handleGameComm(); break;
+                    default: exit(0);
+                }
+            }catch(IOException e){
+                handleConnectionFault();
             }
         }
 
     }
+
+    public static void handleConnectionFault(){
+        state = STATE_LOGIN;
+
+        System.out.println("connectionFault");//TODO tampilkan pesan error ke GUI kesalahan koneksi/disconnected
+    }
+
+    public static void handleConnect() throws IOException, InterruptedException{
+        connect.show();
+        boolean successConnect = false;
+        do{
+            String [] connectArgs;
+            connectArgs = connect.askConnectArgs();
+            try {
+                socketToServer = new Socket(connectArgs[0],Integer.parseInt(connectArgs[1]));
+                socketToServer.setKeepAlive(true);
+                successConnect = true;
+                is = socketToServer.getInputStream();
+                os = socketToServer.getOutputStream();
+                ps = new PrintStream(os);
+                sc = new Scanner(is);
+            } catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+        }while (!successConnect);
+
+        connect.hide();
+    }
+
     private static String name;
 
     public static void handleLoginComm() throws InterruptedException, IOException {

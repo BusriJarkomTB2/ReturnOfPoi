@@ -25,8 +25,13 @@ public class Login {
         frame.setSize(400,150);
         frame.setResizable(false);
         LogInBtn.addActionListener(new ActionListener() {
+            public boolean nameValid(String txt){
+                //TODO validasi: tidak boleh ada whitespace. alfanumerik aja kali ya
+                return true;
+            }
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (nameValid(getUsernameField().getText()));
                 buttonPressed.tellToGo();
             }
         });
