@@ -71,6 +71,7 @@ public class Display extends JPanel implements MouseListener {
     public static final int END_MARGIN = MARGIN * GRID_ROWS;
 
     private static final int WINDOW_SIZE = END_MARGIN + MARGIN; //untuk window
+    private static final int PLAYERLIST_WIDTH = 200;
 
     /**
      * Instance variables that keep track of game play.
@@ -96,11 +97,22 @@ public class Display extends JPanel implements MouseListener {
         g.drawString(whoseMoveLabel,WINDOW_SIZE/2,MARGIN);
     }
 
+    public void drawPlayerList(Graphics g){
+        final int ROWHEIGHT = MARGIN;
+        for (int i=0;i<playerName.length;i++){
+            g.drawString(playerName[i]+" "+playerStatus[i],WINDOW_SIZE+6+ROWHEIGHT, (int) (ROWHEIGHT*(i+1.5)));
+            g.setColor(playerColor[i]);
+            g.fillOval(WINDOW_SIZE + 6, ROWHEIGHT * (i + 1), ROWHEIGHT, ROWHEIGHT);
+            g.setColor(Color.BLACK);
+            g.drawOval(WINDOW_SIZE + 6, ROWHEIGHT * (i + 1), ROWHEIGHT, ROWHEIGHT);
+        }
+    }
+
     public void updatePlayer (String [] playerName, String [] playerStatus){
         this.playerName = playerName;
         this.playerStatus = playerStatus;
 
-        //TODO tampilkan
+        this.repaint();
     }
 
     public void updateTable(int [][] Table){
@@ -126,7 +138,7 @@ public class Display extends JPanel implements MouseListener {
 
         f = new JFrame();
         f.add(this);
-        f.setSize(WINDOW_SIZE + 6, WINDOW_SIZE + 28);
+        f.setSize(WINDOW_SIZE + 6 + PLAYERLIST_WIDTH, WINDOW_SIZE + 28);
         f.setResizable(false);
         f.setTitle("Gomoku");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -151,6 +163,7 @@ public class Display extends JPanel implements MouseListener {
         drawAllCircles(g);
         drawWhoseMove(g);
         drawWinningCircles(g);
+        drawPlayerList(g);
     }
 
     /**
