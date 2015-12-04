@@ -5,8 +5,10 @@ import java.lang.Math;
 import java.util.ArrayList;
 
 /**
+ * Source From : https://code.google.com/p/gomoku/
  * The Point class represents points on the grid where game pieces may appear.
  */
+
 public class Point {
 
     /**

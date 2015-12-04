@@ -11,20 +11,24 @@ import static java.lang.System.exit;
  * Created by Ginanjar on 12/2/2015.
  */
 public class Main {
+    // For creating game purpose
     private static Connect connect;
     private static Login login;
     private static Lobby lobby;
     private static RoomWaiting roomWaiting;
     private static Display display;
 
+    // For creating connection purpose
     private static Socket socketToServer;
     private static InputStream is;
     private static Scanner sc;
     private static OutputStream os;
     private static PrintStream ps;
 
+    // For game state purpose
     private static int state;
 
+    // Use of constant-like variables
     private static final int STATE_CONNECT = 0;
     private static final int STATE_LOGIN = 1;
     private static final int STATE_LOBBY = 2;
@@ -36,7 +40,7 @@ public class Main {
 
         socketToServer = null;
 
-
+        // Creating new instances
         connect = new Connect();
         login = new Login();
         lobby = new Lobby();
@@ -47,7 +51,7 @@ public class Main {
         roomWaiting.hide();
         display._hide();
 
-
+        // Checking state and quit if necessary
         while (state!=STATE_QUIT){
             try{
                 connect.hide();
@@ -71,6 +75,7 @@ public class Main {
     }
 
     public static void handleConnectionFault(){
+        // For connection error handling purpose
         state = STATE_CONNECT;
 
         System.out.println("connectionFault");
@@ -79,6 +84,7 @@ public class Main {
     }
 
     public static void handleConnect() throws IOException, InterruptedException, java.util.NoSuchElementException{
+        // For Connection
         connect.show();
         boolean successConnect = false;
         do{
@@ -105,6 +111,7 @@ public class Main {
     private static String name;
 
     public static void handleLoginComm() throws InterruptedException, IOException, java.util.NoSuchElementException {
+        // For login communication purpose
         login.show();
         while (state== STATE_LOGIN){
             do{
@@ -119,6 +126,7 @@ public class Main {
     }
 
     public static void handleLobbyComm() throws IOException, InterruptedException, java.util.NoSuchElementException {
+        // For lobby communication purpose
         lobby.show();
         while (state==STATE_LOBBY){
             String line = sc.nextLine();
@@ -159,6 +167,7 @@ public class Main {
     }
 
     public static class WaitUserStartOrLeave extends Thread{
+        // Thread to handle client's option: Start or Leave
         private RoomWaiting roomWaiting;
         private PrintStream ps;
         public WaitUserStartOrLeave(RoomWaiting roomWaiting, PrintStream ps){
@@ -182,6 +191,7 @@ public class Main {
 
     }
     public static void handleRoomWaitingComm() throws InterruptedException, java.util.NoSuchElementException {
+        // For handling communication in waiting room
         roomWaiting.show();
         WaitUserStartOrLeave waitUserStartOrLeave = new WaitUserStartOrLeave(roomWaiting, ps);
         waitUserStartOrLeave.start();
@@ -209,6 +219,7 @@ public class Main {
     }
 
     public static void handleGameComm() throws InterruptedException, java.util.NoSuchElementException {
+        // For handling communication in the game
         display._show();
         while (state==STATE_GAME){
             String line = sc.nextLine();
@@ -256,6 +267,7 @@ public class Main {
     }
 
     public static void stateChangeMessageToStateInt(String line){
+        // For switching Message to Integer
         switch(line){
             case "LOBBY": state=STATE_LOBBY;break;
             case "NAME": state=STATE_LOGIN;break;

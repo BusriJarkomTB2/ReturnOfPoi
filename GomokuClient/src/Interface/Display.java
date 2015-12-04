@@ -13,12 +13,9 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-/**
- * The Display class handles the graphics, draws the grid and pieces, and
- * updates after every move by getting input from the mouse and keyboard.
- */
-public class Display extends JPanel implements MouseListener {
 
+public class Display extends JPanel implements MouseListener {
+//Program Display Game Gomoku
     public static void main(String [] args) throws InterruptedException {
         Display d = new Display();
         d._show();
@@ -62,9 +59,8 @@ public class Display extends JPanel implements MouseListener {
         d.showWinDialog("wols",0,pieces);
     }
 
-    /**
-     * Constants for determining grid and piece size.
-     */
+// Konstanta untuk mendefinisikan grid dan size
+    
     public static final int MARGIN = 24;
     public static final int GRID_ROWS = 20;
     public static final int PIECE_DIAMETER = 22;
@@ -73,9 +69,9 @@ public class Display extends JPanel implements MouseListener {
     private static final int WINDOW_SIZE = END_MARGIN + MARGIN; //untuk window
     private static final int PLAYERLIST_WIDTH = 200;
 
-    /**
-     * Instance variables that keep track of game play.
-     */
+   
+// Inisialisasi variable
+     
     private Point newLocation;
     private Signal newLocationSignal = new Signal();
     private int [][] playerTable;
@@ -83,6 +79,7 @@ public class Display extends JPanel implements MouseListener {
     private String [] playerName;
     private String [] playerStatus;
 
+//fungsi untuk memberitahu agar user bermain pada gilirannya
     public int[] askMove() throws InterruptedException {
         whoseMoveLabel = "YOUR MOVE";
         this.repaint();
@@ -91,12 +88,13 @@ public class Display extends JPanel implements MouseListener {
         return rowcol(newLocation);
     }
 
+// Membuat Display antara "Move" atau "Wait"
     private String whoseMoveLabel = "wait";
-
     public void drawWhoseMove(Graphics g){
         g.drawString(whoseMoveLabel,WINDOW_SIZE/2,MARGIN);
     }
 
+// Membuat Display List Player yang ada tersedia
     public void drawPlayerList(Graphics g){
         final int ROWHEIGHT = MARGIN;
         for (int i=0;i<playerName.length;i++){
@@ -108,6 +106,7 @@ public class Display extends JPanel implements MouseListener {
         }
     }
 
+// Display untuk meng-update player
     public void updatePlayer (String [] playerName, String [] playerStatus){
         this.playerName = playerName;
         this.playerStatus = playerStatus;
@@ -115,16 +114,14 @@ public class Display extends JPanel implements MouseListener {
         this.repaint();
     }
 
+// Display untuk meng-update Table Gomoku
     public void updateTable(int [][] Table){
         this.playerTable = Table;
         this.repaint();
     }
 
     JFrame f;
-    /**
-     * Class constructor initalizes this to receive input from mouse click and
-     * Enter key.
-     */
+// Konstruktor untuk membuat laman awal dan memulai permainan
     public Display() {
         this.addMouseListener(this);
         this.setFocusable(true);
@@ -153,7 +150,7 @@ public class Display extends JPanel implements MouseListener {
     }
 
     /**
-     * Update the display every turn or after receiving input.
+     *  Update display setiap turn atau setelah menerima input
      *
      * @param  g Graphics object to draw
      */
@@ -167,7 +164,7 @@ public class Display extends JPanel implements MouseListener {
     }
 
     /**
-     * Draw a 20x20 black grid using class constants.
+     * Menggambar grid 20x20
      *
      * @param  g Graphics object to draw lines
      */
@@ -267,6 +264,7 @@ public class Display extends JPanel implements MouseListener {
 
     private int [][] winPieces = null;
 
+// Menggambar cicle pada player yang menang
     private void drawWinningCircles(Graphics g){
         if (winPieces!=null){
             for (int i=0;i<winPieces.length;i++){

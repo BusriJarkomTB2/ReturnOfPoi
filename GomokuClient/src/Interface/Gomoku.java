@@ -4,7 +4,7 @@ import javax.swing.JFrame;
 
 public class Gomoku {
     private static final int WINDOW_SIZE = Display.END_MARGIN + Display.MARGIN;
-
+// Konstruktor untuk meng-set game Gomoku
     public Gomoku() {
         JFrame f = new JFrame();
         Display d = new Display();
