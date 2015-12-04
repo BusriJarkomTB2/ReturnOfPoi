@@ -22,10 +22,11 @@ import java.util.logging.Logger;
  *
  * @author nim_13512501
  */
-public class Player extends Thread{
+public class Player implements Runnable{
     private String name;
     private Socket socket;
     private boolean connected;
+    Thread plThread;
     public Player(String name, Socket socket, boolean connected){
         try {
             this.ps = new PrintStream(socket.getOutputStream());
@@ -35,7 +36,8 @@ public class Player extends Thread{
         this.name = name;
         this.socket = socket;
         this.connected = connected;
-        this.start();
+        plThread = (new Thread(this));
+        plThread.start();
     }
     
     public String getPlayerName(){
@@ -137,8 +139,9 @@ public class Player extends Thread{
                 this.socket = s;
                 ps = new PrintStream(socket.getOutputStream());
                 this.setConnected(true);
-                if (!this.isAlive())
-                    this.start();
+                if (!plThread.isAlive())
+                    plThread = (new Thread(this));
+                    plThread.start();
             } catch (IOException ex) {
                 connected = false;
                 Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
