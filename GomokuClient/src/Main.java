@@ -33,8 +33,6 @@ public class Main {
 
     public static void main(String args[]) throws InterruptedException {
 
-
-
         socketToServer = null;
 
 
@@ -48,8 +46,6 @@ public class Main {
         roomWaiting.hide();
         display._hide();
 
-        String line = sc.nextLine();
-        stateChangeMessageToStateInt(line);
 
         while (state!=STATE_QUIT){
             try{
@@ -69,7 +65,7 @@ public class Main {
     }
 
     public static void handleConnectionFault(){
-        state = STATE_LOGIN;
+        state = STATE_CONNECT;
 
         System.out.println("connectionFault");//TODO tampilkan pesan error ke GUI kesalahan koneksi/disconnected
     }
@@ -91,6 +87,8 @@ public class Main {
             } catch (NumberFormatException e){
                 e.printStackTrace();
             }
+            String line = sc.nextLine();
+            stateChangeMessageToStateInt(line);
         }while (!successConnect);
 
         connect.hide();
@@ -133,11 +131,9 @@ public class Main {
                     String curReply=lobby.askUserInput();
                     ps.println(curReply);
                     ps.flush();
-                    System.out.println(curReply);
                     if (curReply=="CREATE") {
                         line=sc.next();
                         if (line.equals("NAME")) {
-                            System.out.println("check");
                             ps.println(lobby.getCreatedRoomName());
                             ps.flush();
                         }
